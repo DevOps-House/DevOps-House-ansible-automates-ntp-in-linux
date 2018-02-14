@@ -1,0 +1,6 @@
+pack: ntp
+wall: firewalld
+service:
+  pack: ntpd
+  wall: firewalld
+rule: ntp

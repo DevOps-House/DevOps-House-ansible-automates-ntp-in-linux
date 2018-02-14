@@ -1,0 +1,59 @@
+---
+# tasks filei for ntp-role specific to ASIA region
+- name: Install required packages
+  yum:
+    name: "{{item}}"
+    state: latest
+  with_items:
+    - "{{pack}}"
+    - "{{wall}}"
+
+- name: Start and restart service
+  service:
+    name: "{{item}}"
+    state: started
+  with_items:
+    - "{{service.pack}}"
+    - "{{service.wall}}"
+
+- name: Allow firewall ntp rule
+  firewalld:
+    service: "{{rule}}"
+    state: enabled
+    permanent: True
+    immediate: True
+
+- name: Enabling ntpdate on boot time
+  service:
+    name: ntpdate
+    enabled: True
+
+- name: Adding Asia region pool server.
+  replace:
+    path: /etc/ntp.conf
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
+  with_items:
+    - { regexp: 0.rhel, replace: 0.asia }
+    - { regexp: 1.rhel, replace: 1.asia }
+    - { regexp: 2.rhel, replace: 2.asia }
+    - { regexp: 3.rhel, replace: 3.asia }
+  notify:
+    - restart ntpd
+
+- name: Giving unrestricted access to localhost
+  blockinfile:
+    path: /etc/ntp.conf
+    block: |
+       restrict -6 default kod nomodify notrap nopeer noquery
+       restrict -6 ::1
+  notify:
+    - restart ntpd
+
+- name: Copying zone details to /etc/localtime file
+  copy:
+    src: /usr/share/zoneinfo/Asia/Kolkata
+    dest: /etc/localtime
+    force: yes
+
+
