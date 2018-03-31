@@ -1,6 +1,6 @@
 ---
 - name: NTP roles
-  hosts: mynode
+  hosts: all
   become: True
   roles:
   - ntp-role
